@@ -54,10 +54,6 @@
 
       $.getJSON('./data/navwarnings.json', function(json) {
 
-
-        console.log(json);
-
-
         map.addSource("linestrings-navwarnings-src", {
           "type": "geojson",
           "data": json['linestrings-navwarnings']
