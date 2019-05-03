@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8' />
+  <title>Tactique Navwarnings Tool : Demo</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5/turf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .navwarning-description {
+      width: 350px;
+      height: 300px;
+      overflow: scroll;
+    }
+
+    .navwarning-description img {
+      width: 100%;
+    }
+
+    img {
+      width: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="map"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9iaXNvbml2IiwiYSI6ImNqbjM5eXEwdjAyMnozcW9jMzdpbGk5emoifQ.Q_S2qL8UW-UyVLikG_KqQA';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/robisoniv/cjv70s46o01ww1fmu0w7xlk5s',
+      center: [0.000000, 0.000000],
+      zoom: 1.4
+    });
+
+    map.on("load", function() {
+
+      $.getJSON('./data/navwarnings.json', function(json) {
+
+
+        console.log(json);
+
+
+        map.addSource("linestrings-navwarnings-src", {
+          "type": "geojson",
+          "data": json['linestrings-navwarnings']
+        });
+
+        map.addSource("points-navwarnings-src", {
+          "type": "geojson",
+          "data": json['points-navwarnings']
+        });
+
+        map.addSource("points-mock-security-teams-src", {
+          "type": "geojson",
+          "data": json['points-mock-security-teams']
+        });
+
+
+        map.addSource("points-operating-bases-src", {
+          "type": "geojson",
+          "data": json['points-operating-bases']
+        });
+
+        map.addSource("points-piracy-warnings-src", {
+          "type": "geojson",
+          "data": json['points-piracy-warnings']
+
+        });
+
+        map.addLayer({
+          "id": "linestrings-navwarnings",
+          "type": "line",
+          "source": "linestrings-navwarnings-src",
+          "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+          },
+          "paint": {
+            "line-color": "#02b1d4",
+            "line-width": 1.5
+            //  "fill-opacity": 0.4
+          },
+          "filter": ["==", "$type", "LineString"]
+        });
+
+        map.addLayer({
+          "id": "points-mock-security-teams",
+          "type": "circle",
+          "source": "points-mock-security-teams-src",
+          "paint": {
+            "circle-radius": 6,
+            "circle-color": "#bd57e5"
+          },
+          "filter": ["==", "$type", "Point"],
+
+        });
+
+        map.addLayer({
+          "id": "points-navwarnings",
+          "type": "circle",
+          "source": "points-navwarnings-src",
+          "paint": {
+            "circle-radius": 2.5,
+            "circle-color": "#02b1d4",
+            "circle-opacity": 0.6
+          },
+          "filter": ["==", "$type", "Point"],
+        });
+
+        map.addLayer({
+          "id": "points-operating-bases",
+          "type": "circle",
+          "source": "points-operating-bases-src",
+          "paint": {
+            "circle-radius": 5,
+            "circle-color": "#f4f466",
+            "circle-opacity": 0.6
+          }//,
+        //  "filter": ["==", "$type", "Point"],
+        })
+
+        map.addLayer({
+          "id": "points-piracy-warnings",
+          "type": "circle",
+          "source": "points-piracy-warnings-src",
+          "paint": {
+            "circle-radius": 3,
+            "circle-color": "#f60e0e",
+            "circle-opacity": 0.6
+          },
+          "filter": ["==", "$type", "Point"],
+        })
+
+
+
+        displayPopupPoints("points-mock-security-teams");
+        displayPopupPoints("points-navwarnings");
+        displayPopupPoints("points-piracy-warnings");
+        displayPopupPoints("points-operating-bases");
+
+        function displayPopupPoints(_id) {
+          map.on('click', _id, function(e) {
+            console.log(e);
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = e.features[0].properties.description;
+  //          var header = e.features[0].properties.name;
+            var s = _id.split("-");
+            var header = s.slice(1,s.length).join(' ').toUpperCase();
+            header = header.slice(0, header.length - 1);
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+              coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            new mapboxgl.Popup()
+              .setLngLat(coordinates)
+              .setHTML("<div class='navwarning-description'><br /><h2>" + header + "</h2>" + description + "<div><img src='./assets/logo.png' />")
+              .addTo(map);
+          })
+        }
+
+        map.on('click', 'linestrings-navwarnings', function(e) {
+          var coordinates = turf.centroid(turf.lineString(e.features[0].geometry.coordinates)).geometry.coordinates;
+          var description = e.features[0].properties.description;
+          var header = "NAVWARNING";
+
+          // Ensure that if the map is zoomed out such that multiple
+          // copies of the feature are visible, the popup appears
+          // over the copy being pointed to.
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML("<div class='navwarning-description'><br /><h2>" + header + "</h2>" + description + "<div><img src='./assets/logo.png' />")
+            .addTo(map);
+        });
+
+      })
+    });
+  </script>
+
+</body>
+
+</html>
