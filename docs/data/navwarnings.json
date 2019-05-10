@@ -1142,9 +1142,9 @@
       }
     ]
   },
-  "points-mock-security-teams": {
+  "points-security-teams": {
     "type": "FeatureCollection",
-    "name": "pts-mock-security-teams",
+    "name": "pts-security-teams",
     "crs": {
       "type": "name",
       "properties": {
@@ -1163,7 +1163,7 @@
           "LONG (deg)": "42.584345",
           "LAT (dec)": -6.933299,
           "LONG (dec)": 42.584345,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1182,7 +1182,7 @@
           "LONG (deg)": "37.058934",
           "LAT (dec)": 23.489976,
           "LONG (dec)": 37.058934,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1201,7 +1201,7 @@
           "LONG (deg)": "54.992566",
           "LAT (dec)": 5.522424,
           "LONG (dec)": 54.992566,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1220,7 +1220,7 @@
           "LONG (deg)": "75.434326",
           "LAT (dec)": 7.346728,
           "LONG (dec)": 75.434326,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1239,7 +1239,7 @@
           "LONG (deg)": "97.905267",
           "LAT (dec)": 6.12987,
           "LONG (dec)": 97.905267,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1258,7 +1258,7 @@
           "LONG (deg)": "36.413341",
           "LAT (dec)": -28.238957,
           "LONG (dec)": 36.413341,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",
@@ -1277,7 +1277,7 @@
           "LONG (deg)": "60.495465",
           "LAT (dec)": 23.890473,
           "LONG (dec)": 60.495465,
-          "CATEGORY": "mock security team"
+          "CATEGORY": "security team"
         },
         "geometry": {
           "type": "Point",

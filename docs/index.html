@@ -47,16 +47,24 @@
       container: 'map',
       style: 'mapbox://styles/robisoniv/cjv70s46o01ww1fmu0w7xlk5s',
       center: [0.000000, 0.000000],
-      zoom: 1.4
+      zoom: 2,
+      maxBounds: [
+        [-179, -79],
+        [179, 79]
+      ]
     });
 
     map.on("load", function() {
 
-      $.getJSON('./data/navwarnings.json', function(json) {
+      $.getJSON('./data/navwarnings-polygons.json', function(json) {
 
-        map.addSource("linestrings-navwarnings-src", {
+
+        console.log(json);
+
+
+        map.addSource("polygons-navwarnings-src", {
           "type": "geojson",
-          "data": json['linestrings-navwarnings']
+          "data": json['polygons-navwarnings']
         });
 
         map.addSource("points-navwarnings-src", {
@@ -64,9 +72,9 @@
           "data": json['points-navwarnings']
         });
 
-        map.addSource("points-mock-security-teams-src", {
+        map.addSource("points-security-teams-src", {
           "type": "geojson",
-          "data": json['points-mock-security-teams']
+          "data": json['points-security-teams']
         });
 
 
@@ -82,9 +90,30 @@
         });
 
         map.addLayer({
+          "id": "polygons-navwarnings",
+          "type": "fill",
+          "source": "polygons-navwarnings-src",
+          'layout': {},
+          'paint': {
+            'fill-color': '#088',
+            'fill-opacity': 0.8
+          },
+          // "layout": {
+          //   "line-join": "round",
+          //   "line-cap": "round"
+          // },
+          // "paint": {
+          //   "line-color": "#02b1d4",
+          //   "line-width": 1.5
+          //   //  "fill-opacity": 0.4
+          // },
+          "filter": ["==", "$type", "Polygon"]
+        });
+
+        map.addLayer({
           "id": "linestrings-navwarnings",
           "type": "line",
-          "source": "linestrings-navwarnings-src",
+          "source": "polygons-navwarnings-src",
           "layout": {
             "line-join": "round",
             "line-cap": "round"
@@ -98,9 +127,9 @@
         });
 
         map.addLayer({
-          "id": "points-mock-security-teams",
+          "id": "points-security-teams",
           "type": "circle",
-          "source": "points-mock-security-teams-src",
+          "source": "points-security-teams-src",
           "paint": {
             "circle-radius": 6,
             "circle-color": "#bd57e5"
@@ -129,8 +158,8 @@
             "circle-radius": 5,
             "circle-color": "#f4f466",
             "circle-opacity": 0.6
-          }//,
-        //  "filter": ["==", "$type", "Point"],
+          } //,
+          //  "filter": ["==", "$type", "Point"],
         })
 
         map.addLayer({
@@ -147,19 +176,20 @@
 
 
 
-        displayPopupPoints("points-mock-security-teams");
+        displayPopupPoints("points-security-teams");
         displayPopupPoints("points-navwarnings");
         displayPopupPoints("points-piracy-warnings");
         displayPopupPoints("points-operating-bases");
 
         function displayPopupPoints(_id) {
           map.on('click', _id, function(e) {
-            console.log(e);
+            // from https://docs.mapbox.com/mapbox-gl-js/example/popup-on-hover/
+            // console.log(e);
             var coordinates = e.features[0].geometry.coordinates.slice();
             var description = e.features[0].properties.description;
-  //          var header = e.features[0].properties.name;
+            //          var header = e.features[0].properties.name;
             var s = _id.split("-");
-            var header = s.slice(1,s.length).join(' ').toUpperCase();
+            var header = s.slice(1, s.length).join(' ').toUpperCase();
             header = header.slice(0, header.length - 1);
 
             // Ensure that if the map is zoomed out such that multiple
@@ -175,6 +205,27 @@
               .addTo(map);
           })
         }
+
+        map.on('click', 'polygons-navwarnings', function(e) {
+          // from https://docs.mapbox.com/mapbox-gl-js/example/popup-on-hover/
+          console.log('polygon click');
+          var coordinates = turf.centroid(turf.lineString(e.features[0].geometry.coordinates[0])).geometry.coordinates;
+          var description = e.features[0].properties.description;
+          var header = "NAVWARNING";
+
+          // Ensure that if the map is zoomed out such that multiple
+          // copies of the feature are visible, the popup appears
+          // over the copy being pointed to.
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML("<div class='navwarning-description'><br /><h2>" + header + "</h2>" + description + "<div><img src='./assets/logo.png' />")
+            .addTo(map);
+        });
+
 
         map.on('click', 'linestrings-navwarnings', function(e) {
           var coordinates = turf.centroid(turf.lineString(e.features[0].geometry.coordinates)).geometry.coordinates;
